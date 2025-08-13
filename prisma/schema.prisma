@@ -1,0 +1,167 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  password      String?   
+  emailVerified DateTime?
+  image         String?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[]
+  isTwoFactorEnabled Boolean @default(false)
+  twoFactorConfirmation TwoFactorConfirmation?
+
+  memberships   Membership[]
+}
+
+model TwoFactorConfirmation {
+  id String @id @default(cuid())
+
+  userId String  @unique
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String  @map("user_id")
+  type               String
+  provider           String
+  providerAccountId  String  @map("provider_account_id")
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+ 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model VerifiactionToken {
+  id                String @id @default(cuid())
+  email             String
+  token             String @unique
+  expires           DateTime
+
+  @@unique([email,token])
+}
+
+model ResetPasswordToken {
+  id               String  @id @default(cuid())
+  email            String
+  token            String @unique
+  expires          DateTime
+
+  @@unique([email,token])
+}
+
+model TwoFactorToken {
+   id String @id @default(cuid())
+   email String
+   token String @unique
+   expires DateTime
+
+   @@unique([email,token])
+}
+
+model Workspace {
+  id        String        @id @default(cuid())
+  name      String
+  slug      String        @unique
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  memberships Membership[]
+  projects    Project[]
+}
+
+enum Role {
+  OWNER
+  MEMBER
+}
+
+
+model Membership {
+  id          String    @id @default(cuid())
+  userId      String
+  workspaceId String
+  role        Role      @default(OWNER)
+
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+} 
+
+model Project {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  widgets     Widget[]
+}
+
+model Response {
+  id         String   @id @default(cuid())
+  widgetId   String
+  content    Json
+  browser    String?
+  os         String?
+  device     String?
+  ip         String?
+  country    String?
+  city       String?
+
+  createdAt  DateTime @default(now())
+
+  widget     Widget   @relation(fields: [widgetId], references: [id], onDelete: Cascade)
+}
+
+model Widget {
+  id           String    @id @default(cuid())
+  projectId    String
+  title        String
+  description  String?
+  clientId     String    @unique 
+  settings     Json      
+  isActive     Boolean   @default(true)
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  responses    Response[]
+}
+
+
