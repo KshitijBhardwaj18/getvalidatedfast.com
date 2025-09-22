@@ -7,12 +7,12 @@ type CardWrapperProps = {
 const CardWrapper: React.FC<CardWrapperProps> = ({children}) => {
 
     return (
-       <Card className="bg-white p-5 border-none">
+       <Card className="bg-white p-5 border-none flex min-w-xl">
             <CardHeader>
                 <CardTitle className="text-black text-center">
                     ✅ GetValidatedFast.com
                 </CardTitle>
-                <CardDescription >
+                <CardDescription className='text-center' >
                     One stop shop for all your validation needs.
                  </CardDescription>   
             </CardHeader>

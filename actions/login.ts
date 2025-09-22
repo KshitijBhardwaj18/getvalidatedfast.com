@@ -22,7 +22,7 @@ export const Login = async (values: z.infer<typeof LoginSchema>) => {
   }
 
   const { email, password, otp } = validatedFields.data;
-console.log(otp)
+
   const existingUser = await getUserByEmail(email);
 
   if (!existingUser || !existingUser.email || !existingUser.password) {

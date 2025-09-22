@@ -1,6 +1,8 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
+import { ProjectCombbox } from "./projectCombbox";
+
 import {
   IconCamera,
   IconChartBar,
@@ -17,9 +19,9 @@ import {
   IconSearch,
   IconSettings,
   IconUsers,
-} from "@tabler/icons-react"
-
-import { NavUser } from "@/components/nav-user"
+} from "@tabler/icons-react";
+import { useSession } from "next-auth/react";
+import { NavUser } from "@/components/nav-user";
 
 import {
   Sidebar,
@@ -29,14 +31,10 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+import ProjectSelect from "./projectSelect";
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   navMain: [
     {
       title: "Dashboard",
@@ -146,9 +144,11 @@ const data = {
       icon: IconFileWord,
     },
   ],
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data: session } = useSession();
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -159,19 +159,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">GetValidatedFast.com</span>
+                <span className="text-base font-semibold">
+                  ✅ GetValidatedFast.com
+                </span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent>
-        
+      <SidebarContent className="flex items-center">
+        {/* <ProjectSelect /> */}
+        <ProjectCombbox/>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={session?.user} />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

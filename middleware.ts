@@ -11,34 +11,33 @@ import { NextApiRequest } from "next";
 
 const { auth } = NextAuth(authConfig);
 
-export default auth((req) => {
+export default auth(async (req) => {
   const { nextUrl } = req;
-  console.log(JSON.stringify(nextUrl));
-  const isLoggedIn = !!req.auth;
 
-  
+  const isLoggedIn = !!req.auth;
 
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoute.includes(nextUrl.pathname);
 
   if (isApiAuthRoute) {
-    return ;
+    return;
   }
 
   if (isAuthRoute) {
     if (isLoggedIn) {
       return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
-
     }
-    return ;
+    return;
   }
 
   if (!isLoggedIn && !isPublicRoute) {
     return Response.redirect(new URL("/", nextUrl));
   }
 
-  return ;
+  // Membership check moved to server layout to avoid DB calls in middleware (Edge)
+
+  return;
 });
 
 export const config = {

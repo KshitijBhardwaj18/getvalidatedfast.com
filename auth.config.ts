@@ -7,7 +7,6 @@ import { db } from "./lib/db";
 import bcrypt from "bcryptjs";
 import { getUserByEmail, getUserById } from "./data/user";
 import NextAuth from "next-auth";
-import { UserRole } from "@prisma/client";
 
 
 
@@ -50,13 +49,11 @@ export default {
           const { email, password } = validatedFields.data;
 
           const user = await getUserByEmail(email);
-
           if (!user || !user.password) return null;
-          console.log("Reached here")
           const passwordMatch = await bcrypt.compare(password, user.password);
 
           if (passwordMatch) return user;
-          console.log("Reached here")
+        
         }
         
         return null;

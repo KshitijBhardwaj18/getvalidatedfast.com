@@ -33,7 +33,7 @@ const NewPasswordForm = () => {
 
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
-  console.log(token);
+
   if (!token) {
     return "Invalid credentials";
   }

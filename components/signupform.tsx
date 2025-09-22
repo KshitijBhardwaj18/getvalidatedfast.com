@@ -56,10 +56,13 @@ const SignUpForm = () => {
     }
   };
   return (
-    <div>
+    <div className="flex flex-col w-full">
+      <div className="w-full">
       <SocialLogin/>
+      </div>
+      
 
-      <div className="flex items-center justify-center my-4">
+      <div className="flex items-center justify-center my-4 w-full" >
         <div className="w-full border-t border-gray-300"></div>
         <span className="px-2 text-gray-500 text-[10px]  whitespace-nowrap">
           Continue with

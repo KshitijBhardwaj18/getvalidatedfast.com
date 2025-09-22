@@ -3,7 +3,6 @@ import authConfig from "./auth.config";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "./lib/db";
 import NextAuth from "next-auth";
-import { UserRole } from "@prisma/client";
 import { getUserById } from "./data/user";
 import { getTwoFactorConfirmationByUserId } from "./data/two-factor-confirmation";
 
@@ -43,10 +42,7 @@ export const {
         session.user.id = token.sub;
       }
 
-      if (token.role && session.user) {
-        session.user.role = token.role as UserRole;
-      }
-
+      
       return session;
     },
 
@@ -59,7 +55,7 @@ export const {
         return token;
       }
 
-      token.role = user.role;
+   
 
       return token;
     },

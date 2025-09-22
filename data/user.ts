@@ -7,7 +7,7 @@ export const getUserByEmail = async (email: string) => {
       where: { email },
     });
 ``  
-    console.log(user);
+   
 
     return user;
   } catch  {
@@ -23,7 +23,7 @@ export const getUserById = async (id: string) => {
       where: { id },
     });
 ``  
-    console.log(user);
+   
 
     return user;
   } catch  {
@@ -87,6 +87,8 @@ export const memberShipExists = async (userId: string) => {
         userId
       }
     })
+
+    console.log(memberShip)
 
     return memberShip;
   }catch{
