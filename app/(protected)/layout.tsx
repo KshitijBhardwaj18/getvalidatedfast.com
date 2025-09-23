@@ -1,5 +1,5 @@
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { memberShipExists } from "@/data/user";

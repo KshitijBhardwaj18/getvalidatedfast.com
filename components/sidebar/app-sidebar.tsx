@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { ProjectCombbox } from "./projectCombbox";
+import { ProjectCombbox } from "../projectCombbox";
+import SidebarNav from "./sidebar-nav";
 
 import {
   IconCamera,
@@ -21,7 +22,7 @@ import {
   IconUsers,
 } from "@tabler/icons-react";
 import { useSession } from "next-auth/react";
-import { NavUser } from "@/components/nav-user";
+import { NavUser } from "@/components/sidebar/nav-user";
 
 import {
   Sidebar,
@@ -32,7 +33,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import ProjectSelect from "./projectSelect";
+import ProjectSelect from "../projectSelect";
 
 const data = {
   navMain: [
@@ -169,7 +170,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent className="flex items-center">
         {/* <ProjectSelect /> */}
-        <ProjectCombbox/>
+        <ProjectCombbox />
+
+        <SidebarNav />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={session?.user} />

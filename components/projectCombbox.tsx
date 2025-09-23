@@ -5,6 +5,7 @@ import { Check, ChevronsUpDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { setCurrentProject } from "@/actions/getUserProjects";
 import {
   Command,
   CommandEmpty,
@@ -19,6 +20,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { getUserProjects } from "@/actions/getUserProjects";
+import { toast } from "sonner";
 
 interface Project {
   id: string;
@@ -44,11 +46,14 @@ export function ProjectCombbox() {
         const result = await getUserProjects();
 
         if (result.success && result.projects) {
-          setProjects(result.projects);
+          setProjects(result.projects as Project[]);
 
           // Set the first project as default
           if (result.projects.length > 0) {
+            const firstProject = result.projects[0].value;
             setValue(result.projects[0].value);
+
+            await setCurrentProject(firstProject);
           }
         } else {
           console.error("Failed to fetch projects:", result.error);
@@ -66,12 +71,18 @@ export function ProjectCombbox() {
   }, []);
 
   // Handle project selection
-  const handleProjectSelect = (currentValue: string) => {
+  const handleProjectSelect = async (currentValue: string) => {
     setValue(currentValue === value ? "" : currentValue);
     setOpen(false);
 
-    // You can add additional logic here, like updating a global state
-    // or calling a callback function to notify parent components
+    const result = await setCurrentProject(currentValue);
+
+    if (result.success) {
+      toast.success("Project switched to:" + result.project?.name);
+
+      window.location.reload();
+    }
+
     console.log("Selected project:", currentValue);
   };
 
@@ -85,13 +96,13 @@ export function ProjectCombbox() {
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+    <Popover open={open} onOpenChange={setOpen} >
+      <PopoverTrigger asChild className="px-3 ">
         <Button
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className="w-full justify-between mx-3 "
         >
           {value
             ? projects.find((project) => project.value === value)?.label
