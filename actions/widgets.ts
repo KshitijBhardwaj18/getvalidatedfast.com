@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 export async function getUserWidgets() {
   const session = await auth();
 
-  if (session?.user?.id) {
+  if (!session?.user?.id) {
     return { success: false, error: "Not Authorised", data: null };
   }
 
@@ -35,6 +35,4 @@ export async function getUserWidgets() {
   return { success: true, error: null, data: widgets };
 }
 
-export async function createWidget() {
-
-}
+export async function createWidget() {}
