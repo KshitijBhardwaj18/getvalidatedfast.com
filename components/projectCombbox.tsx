@@ -5,7 +5,7 @@ import { Check, ChevronsUpDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { setCurrentProject } from "@/actions/getUserProjects";
+import { setCurrentProject } from "@/actions/projects";
 import {
   Command,
   CommandEmpty,
@@ -19,7 +19,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { getUserProjects } from "@/actions/getUserProjects";
+import { getUserProjects } from "@/actions/projects";
 import { toast } from "sonner";
 
 interface Project {
@@ -110,7 +110,7 @@ export function ProjectCombbox() {
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="w-full p-0 bg-white ">
         <Command>
           <CommandList>
             {projects.length === 0 ? (
