@@ -1,4 +1,5 @@
 import HeaderCard from "@/components/headerCard";
+import NewWidgetForm from "@/components/widgetpage/newWidgetForm";
 import { Pen, Plus } from "lucide-react";
 import React from "react";
 
@@ -11,6 +12,7 @@ const NewWidget = () => {
         icon={<Pen/>}
         actionButton={false}
       />
+      <NewWidgetForm/>
     </div>
   );
 };
