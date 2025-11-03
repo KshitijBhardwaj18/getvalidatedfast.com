@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, FormProvider, useFieldArray } from "react-hook-form";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
+import { createWidget } from "@/actions/createWidget";
+import { useRouter } from "next/navigation";
 import {
   Form,
   FormControl,
@@ -31,6 +33,7 @@ import {
   behaviourSchema,
 } from "@/types/widgetform";
 import { Bug, MessageSquare, Star } from "lucide-react";
+import { toast } from "sonner";
 
 type ContentSchemaType = ReturnType<typeof getContentSchema>;
 type ContentValues = z.infer<ContentSchemaType>;
@@ -94,6 +97,7 @@ const UrlsInput = ({
 
 export default function NewWidgetForm() {
   const [step, setStep] = useState(0);
+  const router = useRouter();
 
   const functionalityForm = useForm<FunctionalityValues>({
     resolver: zodResolver(FunctionalitySchema),
@@ -166,7 +170,17 @@ export default function NewWidgetForm() {
       content: contentValues,
       behavior: behaviorValues,
     };
-    console.log("CREATE_WIDGET", payload);
+
+    const response = await createWidget(payload);
+
+    if (response.error) {
+      toast.error(`Failed to create widget: ${response.error}`);
+    }
+
+    if (response.success) {
+      toast.success("Widget created successfully.");
+      router.push("/widget");
+    }
   });
 
   return (

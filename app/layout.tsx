@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import { cn } from "@/lib/utils";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "sonner";
 import { SessionProvider } from "next-auth/react";
 
 const poppins = Poppins({ weight: "400", subsets: ["latin"] });

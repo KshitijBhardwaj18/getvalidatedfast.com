@@ -9,7 +9,6 @@ import { getUserByEmail } from "@/data/user";
 import { generateTwoFactorToken, generateVerificationToken } from "@/lib/token";
 import { sendTwoFactorToken, sendVerificationToken } from "@/lib/mail";
 import { getTwoFacotorVerificationTokenByEmail } from "@/data/two-factor-token";
-import { DevBundlerService } from "next/dist/server/lib/dev-bundler-service";
 import { db } from "@/lib/db";
 import { getTwoFactorConfirmationByUserId } from "@/data/two-factor-confirmation";
 

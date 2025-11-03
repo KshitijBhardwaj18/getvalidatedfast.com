@@ -153,7 +153,7 @@ model Widget {
   projectId    String
   title        String
   description  String?
-  clientId     String    @unique 
+  clientId     String  @unique @default(uuid())
   settings     Json      
   isActive     Boolean   @default(true)
 
