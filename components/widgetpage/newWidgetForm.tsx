@@ -259,8 +259,12 @@ export default function NewWidgetForm() {
                         <FormItem>
                           <FormLabel>
                             <div className="flex flex-col gap-2">
-                              <h3 className="font-semibold">Primary Feedback Type</h3>
-                              <p className="text-neutral-500">Choose the main survey type and flow</p>
+                              <h3 className="font-semibold">
+                                Primary Feedback Type
+                              </h3>
+                              <p className="text-neutral-500">
+                                Choose the main survey type and flow
+                              </p>
                             </div>
                           </FormLabel>
                           <FormControl>
@@ -389,14 +393,32 @@ export default function NewWidgetForm() {
           <FormProvider {...contentForm}>
             <Form {...contentForm}>
               <form className="space-y-6">
+                <div>
+                  <h1 className="font-[900] text-xl">
+                    Step 2: Configure Content
+                  </h1>
+                  <p className="text-neutral-600 text-sm">
+                    Define the text, questions and messages users will see.
+                  </p>
+                </div>
                 <FormField
                   control={contentForm.control}
                   name={"HeaderTitle" as any}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Widget Header Title</FormLabel>
+                      <FormLabel>
+                        <div className="flex gap-1 flex-col ">
+                          <p className="font-bold text-lg text-black">
+                            Widget Header Title
+                          </p>
+                          <p className="text-neutral-500 text-sm ">
+                            The main title shown at the top of the widget.
+                          </p>
+                        </div>
+                      </FormLabel>
                       <FormControl>
                         <Input
+                          className="border-neutral-400 border-1 focus:border-0"
                           placeholder="How can we help you today?"
                           {...field}
                         />
@@ -406,6 +428,8 @@ export default function NewWidgetForm() {
                   )}
                 />
 
+                <div className="w-full border-[0.5px] border-neutral-300" />
+
                 {surveyEnabled &&
                   (primaryType === "NPS" || primaryType === "CSAT") && (
                     <>
@@ -414,7 +438,22 @@ export default function NewWidgetForm() {
                         name={"question" as any}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Question</FormLabel>
+                            <FormLabel>
+                              <div className="flex-col gap-2">
+                                <h1 className="font-bold text-black text-lg">
+                                  Feedback / Survey Content
+                                </h1>
+                                <div className="mt-2 flex flex-col gap-2">
+                                  <h1 className="font-bold text-black text-md">
+                                    Main Question
+                                  </h1>
+                                  <p className="font-medium text-neutral-500 text-sm">
+                                    The primary question for your NPS or CSAT
+                                    survey.
+                                  </p>
+                                </div>
+                              </div>
+                            </FormLabel>
                             <FormControl>
                               <Input
                                 placeholder="How satisfied are you?"
@@ -430,7 +469,18 @@ export default function NewWidgetForm() {
                         name={"submitText" as any}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Submit Button Text</FormLabel>
+                            <FormLabel>
+                              {" "}
+                              <div className="mt-2 flex flex-col gap-2">
+                                <h1 className="font-bold text-black text-md">
+                                  Submit Button text
+                                </h1>
+                                <p className="font-medium text-neutral-500 text-sm">
+                                  Text displayed on the final submission of your
+                                  surveys
+                                </p>
+                              </div>
+                            </FormLabel>
                             <FormControl>
                               <Input placeholder="Submit" {...field} />
                             </FormControl>
@@ -512,12 +562,24 @@ export default function NewWidgetForm() {
                   />
                 )}
 
+                <div className="w-full border-[0.5px] border-neutral-300" />
+
                 <FormField
                   control={contentForm.control}
                   name={"ThanksTitle" as any}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Thank You Title</FormLabel>
+                      <FormLabel>
+                        <div className="flex flex-col gap-2">
+                          <h2 className="font-bold text-lg ">
+                            Thank You Message
+                          </h2>
+                          <p className="text-neutral-400 text-sm">
+                            This message appears after any successful submission
+                            (feedback, bug, feature, review).
+                          </p>
+                        </div>
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="Thank you!" {...field} />
                       </FormControl>
@@ -555,51 +617,36 @@ export default function NewWidgetForm() {
           </FormProvider>
         )}
 
-        {step === 1 && (
-          <FormItem className="flex items-center justify-between rounded-lg border border-neutral-300 p-4">
-            <div className="flex flex-row gap-2 items-center justify-center">
-              <div>
-                <MessageSquare />
-              </div>
-              <div className="flex gap-2 flex-col">
-                <FormLabel className="font-bold">
-                  Collect Feedback / Surveys
-                </FormLabel>
-                <FormDescription>
-                  Gather general feedback and run custom surveys.
-                </FormDescription>
-              </div>
-            </div>
-            <FormField
-              control={functionalityForm.control}
-              name="surveyEnabled"
-              render={({ field }) => (
-                <FormControl>
-                  <Switch
-                    checked={field.value as boolean}
-                    onCheckedChange={field.onChange}
-                    className="
-    data-[state=checked]:bg-green-500 
-    data-[state=unchecked]:bg-neutral-500
-    before:bg-white before:shadow-md before:ring-1 before:ring-black/5
-  "
-                  />
-                </FormControl>
-              )}
-            />
-          </FormItem>
-        )}
-
         {step === 2 && (
           <FormProvider {...behaviorForm}>
             <Form {...behaviorForm}>
               <form className="space-y-6" onSubmit={onCreate}>
+                <div>
+                  <h1 className="font-[900] text-xl">
+                    Step 3: Behaviour & Targeting
+                  </h1>
+                  <p className="text-neutral-600 text-sm">
+                    Define when and where the widget appears for your user
+                  </p>
+                </div>
                 <FormField
                   control={behaviorForm.control}
                   name="triggerType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Trigger Type</FormLabel>
+                      <FormLabel>
+                        <div className="flex flex-col gap-2 ">
+                          <h1 className="font-bold text-lg">Widget Trigger</h1>
+                          <div className="mt-2 flex flex-col gap-2">
+                            <h1 className="font-bold text-black text-md">
+                              Trigger Type
+                            </h1>
+                            <p className="font-medium text-neutral-500 text-sm">
+                              The primary question for your NPS or CSAT survey.
+                            </p>
+                          </div>
+                        </div>
+                      </FormLabel>
                       <FormControl>
                         <Select
                           value={field.value}
@@ -628,13 +675,34 @@ export default function NewWidgetForm() {
                   )}
                 />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="w-full border-[0.5px] border-neutral-300" />
+
+                <div className="flex flex-col  gap-4">
                   <FormField
                     control={behaviorForm.control}
                     name="includeUrls"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Show on Specific URLs</FormLabel>
+                        <FormLabel>
+                          <div className="font-bold flex flex-col gap-2 ">
+                            <h1 className="text-xl font-bold">
+                              Targeting Rules
+                            </h1>
+
+                            <div className="mt-2 flex flex-col gap-3">
+                              <h1 className="font-bold text-black text-md">
+                                Show on Specific URLs
+                              </h1>
+                              <p className="font-medium text-neutral-500 text-sm max-w-3xl">
+                                Show only on pages matching these
+                                comma-separated patterns (e.g., /docs/*,
+                                /blog/post-name). Leave empty to show on all
+                                pages (unless excluded below). Separate URLs
+                                with commas.
+                              </p>
+                            </div>
+                          </div>
+                        </FormLabel>
                         <FormControl>
                           <UrlsInput
                             value={field.value}
@@ -655,7 +723,20 @@ export default function NewWidgetForm() {
                     name="excludeUrls"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Exclude on Specific URLs</FormLabel>
+                        <FormLabel>
+                          {" "}
+                          <div className="mt-2 flex flex-col gap-3">
+                            <h1 className="font-bold text-black text-md">
+                              Exclude on Specific urls
+                            </h1>
+                            <p className="font-medium text-neutral-500 text-sm max-w-3xl">
+                              Do NOT show on pages matching these
+                              comma-separated patterns (e.g., /admin/*, /login).
+                              Separate URLs with commas. Exclusion rules
+                              override inclusion rules
+                            </p>
+                          </div>
+                        </FormLabel>
                         <FormControl>
                           <UrlsInput
                             value={field.value}
