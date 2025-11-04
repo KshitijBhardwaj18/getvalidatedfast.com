@@ -22,6 +22,13 @@ export default function RootLayout({
       <html lang="en">
         <body className={cn("antialiased", poppins.className)}>
           {children} <Toaster />
+          <script
+            defer
+            src="http://localhost:3000/widget.js"
+            data-client-key="af9ee0bb-259e-4c89-91ae-d9210b73fc86"
+            data-language="en"
+            id="getvalidated-widget-script"
+          ></script>
         </body>
       </html>
     </SessionProvider>
