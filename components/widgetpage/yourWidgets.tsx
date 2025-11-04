@@ -2,8 +2,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Widget } from "@prisma/client";
-import { getUserWidgets } from "@/actions/widgets";
-import { deleteWidget, pauseWidget, activateWidget } from "@/actions/Widget";
+
+import { deleteWidget, pauseWidget, activateWidget, getUserWidgets } from "@/actions/widget";
 import { Eye, Pause, Plus, Trash, PlayIcon, MessageSquare } from "lucide-react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader } from "../ui/card";
@@ -19,7 +19,7 @@ const YourWidgets = () => {
   const DeleteWidget = useCallback(async (widgetId: string) => {
     // Optimistic: remove from UI immediately
     setUserWidgets((prev) => prev.filter((w) => w.id !== widgetId));
-    
+
     const response = await deleteWidget(widgetId);
     if (response.error) {
       toast.error(`Failed to delete: ${response.error}`);
@@ -84,7 +84,9 @@ const YourWidgets = () => {
         if (mounted) setLoading(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (loading) {
@@ -152,7 +154,10 @@ const YourWidgets = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-row gap-2 items-center mt-4">
-                    <Button className="flex flex-row items-center justify-center gap-2 flex-1">
+                    <Button
+                      className="flex flex-row items-center justify-center gap-2 flex-1"
+                      onClick={() => router.push(`/widget/${widget.id}`)}
+                    >
                       <p>View Details</p>
                       <Eye />
                     </Button>

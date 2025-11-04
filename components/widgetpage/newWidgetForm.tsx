@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, FormProvider, useFieldArray } from "react-hook-form";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
-import { createWidget } from "@/actions/Widget";
+import { createWidget } from "@/actions/widget";
 import { useRouter } from "next/navigation";
 import {
   Form,
