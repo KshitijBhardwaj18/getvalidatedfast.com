@@ -120,7 +120,7 @@ function WidgetDetailPage({ params }: WidgetDetailPageProps) {
 
               <Button
                 className="px-3 py-2 bg-white/60 border border-green-400 hover:bg-neutral-300 flex gap-2 items-center justify-center"
-                onClick={() => router.push(`widget/edit/${widget?.id}`)}
+                onClick={() => router.push(`/widget/edit/${widget?.id}`)}
               >
                 <Edit className="text-lg text-black" size={10} />
                 <p className="text-black">Edit</p>

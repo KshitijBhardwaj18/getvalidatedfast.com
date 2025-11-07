@@ -23,6 +23,13 @@ export type CreateWidgetInput = {
   behavior: z.infer<typeof behaviourSchema>;
 };
 
+export type EditWidgetInput = {
+  widgetId: string;
+  functionality: FunctionalityValues;
+  content: ContentValues;
+  behavior: z.infer<typeof behaviourSchema>;
+};
+
 export async function createWidget(values: CreateWidgetInput) {
   const projectId = (await cookies()).get("currentProjectId")?.value;
   if (!projectId) {
@@ -45,6 +52,34 @@ export async function createWidget(values: CreateWidgetInput) {
 
   return { success: true, data: widget };
 }
+
+export async function editWidget(values: EditWidgetInput) {
+  const projectId = (await cookies()).get("currentProjectId")?.value;
+  if (!projectId) {
+    return { success: false, error: "No current Project selected" };
+  }
+  const session = await auth();
+
+  if (session?.user?.id == null) {
+    return { success: false, error: "Authentication faliure" };
+  }
+
+  const widget = await db.widget.update({
+    where: {
+      id:values.widgetId
+    },
+    data: {
+      title: values.functionality.name,
+      description: null,
+      settings: values as Prisma.InputJsonValue,
+      project: { connect: { id: projectId } },
+    },
+  });
+
+  return { success: true, data: widget };
+}
+
+
 
 export async function pauseWidget(widgetId: string) {
   const session = await auth();

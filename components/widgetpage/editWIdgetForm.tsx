@@ -1,0 +1,891 @@
+"use client";
+
+import { useState, useMemo,useEffect } from "react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, FormProvider, useFieldArray } from "react-hook-form";
+import { Button } from "../ui/button";
+import { Card } from "../ui/card";
+import { editWidget, getWidgetDetails } from "@/actions/widget";
+import { useRouter } from "next/navigation";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  FunctionalitySchema,
+  type FunctionalityValues,
+  getContentSchema,
+  behaviourSchema,
+} from "@/types/widgetform";
+import { Bug, MessageSquare, Star } from "lucide-react";
+import { toast } from "sonner";
+import { Widget } from "@prisma/client";
+import { WidgetSettings } from "@/types/widget";
+import { EditWidgetSettings } from "@/types/interfaces";
+
+type ContentSchemaType = ReturnType<typeof getContentSchema>;
+type ContentValues = z.infer<ContentSchemaType>;
+
+const steps = ["Functionality", "Content", "Behavior"] as const;
+
+const WizardStepper = ({ step }: { step: number }) => {
+ 
+
+  
+  return (
+    <div className="flex items-center gap-8">
+      {steps.map((s, i) => (
+        <div
+          className="flex flex-col gap-2 items-center justify-center"
+          key={i + s}
+        >
+          <div
+            aria-current={i === step ? "step" : undefined}
+            className={`size-8 rounded-full flex items-center justify-center text-sm ${
+              i <= step
+                ? "bg-green-500 text-white"
+                : "bg-neutral-200 text-neutral-600"
+            }`}
+          >
+            {i + 1}
+          </div>
+          <p
+            className={`flex items-center justify-center text-[0.8rem] ${
+              i <= step ? " text-green-500" : "text-neutral-500"
+            }`}
+          >
+            {s}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const UrlsInput = ({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string[];
+  onChange: (next: string[]) => void;
+  placeholder?: string;
+}) => {
+  return (
+    <Input
+      placeholder={placeholder}
+      value={value.join(", ")}
+      onChange={(e) => {
+        const parts = e.target.value
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+        onChange(parts);
+      }}
+    />
+  );
+};
+
+export default function EditWidgetForm({widgetId}: {widgetId: string}) {
+  
+  const [widgetSetting, setWidgetSetting] = useState<EditWidgetSettings | null>();
+  const [step, setStep] = useState(0);
+  const router = useRouter();
+
+ useEffect(() => {
+    const getAndSetWidget = async () => {
+    const widget = await getWidgetDetails(widgetId);
+    setWidgetSetting(widget?.settings as unknown as EditWidgetSettings);
+  };
+  getAndSetWidget();
+  if (!widgetSetting) return;
+
+if (widgetSetting.functionality.surveyEnabled) {
+  functionalityForm.reset({
+    name: widgetSetting.functionality.name,
+    isReviewsEnabled: widgetSetting.functionality.isReviewsEnabled,
+    isBugReportingEnabled: widgetSetting.functionality.isBugReportingEnabled,
+    isFeatureSuggestionEnabled:
+      widgetSetting.functionality.isFeatureSuggestionEnabled,
+    surveyEnabled: true,
+    surveyOptions: {
+      primaryFeedbackType:
+        widgetSetting.functionality.surveyOptions
+          .primaryFeedbackType as "CSAT" | "NPS" | "CUSTOM" | "TESTIMONIALS",
+    },
+  });
+} else {
+  functionalityForm.reset({
+    name: widgetSetting.functionality.name,
+    isReviewsEnabled: widgetSetting.functionality.isReviewsEnabled,
+    isBugReportingEnabled: widgetSetting.functionality.isBugReportingEnabled,
+    isFeatureSuggestionEnabled:
+      widgetSetting.functionality.isFeatureSuggestionEnabled,
+    surveyEnabled: false,
+  });
+}
+  contentForm.reset({
+    HeaderTitle: widgetSetting.content.HeaderTitle,
+    ThanksTitle: widgetSetting.content.ThanksTitle,
+    ThanksMessage: widgetSetting.content.ThanksMessage,
+    question: widgetSetting.content.question,
+    questions: widgetSetting.content.questions,
+    submitText: widgetSetting.content.submitText,
+  });
+
+  behaviorForm.reset({
+    triggerType: widgetSetting.behavior.triggerType,
+    includeUrls: widgetSetting.behavior.includeUrls,
+    excludeUrls: widgetSetting.behavior.excludeUrls,
+    devices: widgetSetting.behavior.devices,
+  });
+}, [widgetSetting]);
+
+ 
+
+
+
+
+  const functionalityForm = useForm<FunctionalityValues>({
+    resolver: zodResolver(FunctionalitySchema),
+    defaultValues: {
+      name: widgetSetting?.functionality.name  || "",
+      isReviewsEnabled: widgetSetting?.functionality.isReviewsEnabled || false,
+      isBugReportingEnabled: widgetSetting?.functionality.isBugReportingEnabled || false,
+      isFeatureSuggestionEnabled: widgetSetting?.functionality.isFeatureSuggestionEnabled || false,
+      surveyEnabled: widgetSetting?.functionality.surveyEnabled || false,
+      surveyOptions: { primaryFeedbackType: widgetSetting?.functionality.surveyOptions.primaryFeedbackType } as any,
+    } as any,
+    mode: "onChange",
+  });
+
+  const surveyEnabled = functionalityForm.watch("surveyEnabled");
+  const primaryType = functionalityForm.watch(
+    "surveyOptions.primaryFeedbackType" as any
+  ) as undefined | "NPS" | "CSAT" | "CUSTOM" | "TESTIMONIALS";
+
+  const ContentSchema = useMemo(
+    () =>
+      getContentSchema({
+        surveyEnabled: !!surveyEnabled,
+        primaryFeedbackType: surveyEnabled ? primaryType : undefined,
+      }),
+    [surveyEnabled, primaryType]
+  );
+
+  // Use any for dynamic schema branches to satisfy RHF's Control generic
+  const contentForm = useForm<any>({
+    resolver: zodResolver(ContentSchema),
+    defaultValues: {
+      HeaderTitle: widgetSetting?.content.HeaderTitle,
+      ThanksTitle: widgetSetting?.content.ThanksTitle,
+      ThanksMessage: widgetSetting?.content.ThanksMessage,
+      // @ts-ignore dynamic fields
+      question: widgetSetting?.content.question,
+      // @ts-ignore
+      questions: widgetSetting?.content.questions,
+      // @ts-ignore
+      submitText: widgetSetting?.content.submitText,
+    },
+    mode: "onChange",
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: contentForm.control as any,
+    name: "questions" as any,
+  });
+
+  const behaviorForm = useForm<z.infer<typeof behaviourSchema>>({
+    resolver: zodResolver(behaviourSchema),
+    defaultValues: {
+      triggerType: widgetSetting?.behavior?.triggerType || "showImmediately",
+      includeUrls: widgetSetting?.behavior.includeUrls,
+      excludeUrls: widgetSetting?.behavior.excludeUrls,
+      devices: widgetSetting?.behavior.devices,
+    },
+  });
+
+  const nextFromStep1 = functionalityForm.handleSubmit(() => setStep(1));
+  const nextFromStep2 = contentForm.handleSubmit(() => setStep(2));
+  const back = () => setStep((s) => Math.max(0, s - 1));
+
+  const onEdit = behaviorForm.handleSubmit(async (behaviorValues) => {
+    const functionalityValues = functionalityForm.getValues();
+    const contentValues = contentForm.getValues();
+    const payload = {
+      widgetId,  
+      functionality: functionalityValues,
+      content: contentValues,
+      behavior: behaviorValues,
+    };
+
+    const response = await editWidget(payload);
+
+    if (response.error) {
+      toast.error(`Failed to create widget: ${response.error}`);
+    }
+
+    if (response.success) {
+      toast.success("Widget created successfully.");
+      router.push("/widget");
+    }
+  });
+
+  return (
+    <div className="space-y-8 flex items-center justify-center flex-col mt-3 px-15">
+      <WizardStepper step={step} />
+      <Card className="border border-neutral-300 p-10 shadow-lg w-full  ">
+        {step === 0 && (
+          <FormProvider {...functionalityForm}>
+            <Form {...functionalityForm}>
+              <form className="space-y-6">
+                <div>
+                  <h1 className="font-[900] text-xl">
+                    Step 1: Functionality & Basics
+                  </h1>
+                  <p className="text-neutral-600 text-sm">
+                    Choose what your widget will do and give it a name.
+                  </p>
+                </div>
+
+                <FormField
+                  control={functionalityForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex flex-col justify-center items-start">
+                        <div>
+                          <p className="font-bold"> Widget Name (Internal) </p>
+                          <p className="text-neutral-600 text-sm mt-3">
+                            A name helps you to identify the widget. (Not shown
+                            to the users)
+                          </p>
+                        </div>
+                      </FormLabel>
+
+                      <FormControl>
+                        <Input
+                          placeholder="Main Feedback Widget"
+                          {...field}
+                          className="border-neutral-400 focus:border-0"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <h2 className="font-bold text-sm">Widget Modules</h2>
+
+                <FormItem className="flex items-center justify-between rounded-lg border border-neutral-300 p-4">
+                  <div className="flex flex-row gap-2 items-center justify-center">
+                    <div>
+                      <MessageSquare />
+                    </div>
+                    <div className="flex gap-2 flex-col">
+                      <FormLabel className="font-bold">
+                        Collect Feedback / Surveys
+                      </FormLabel>
+                      <FormDescription>
+                        Gather general feedback and run custom surveys.
+                      </FormDescription>
+                    </div>
+                  </div>
+                  <FormField
+                    control={functionalityForm.control}
+                    name="surveyEnabled"
+                    render={({ field }) => (
+                      <FormControl>
+                        <Switch
+                          checked={field.value as boolean}
+                          onCheckedChange={field.onChange}
+                          className="
+    data-[state=checked]:bg-green-500 
+    data-[state=unchecked]:bg-neutral-500
+    before:bg-white before:shadow-md before:ring-1 before:ring-black/5
+  "
+                        />
+                      </FormControl>
+                    )}
+                  />
+                </FormItem>
+
+                {surveyEnabled && (
+                  <div className="flex flex-row gap-6 pl-5">
+                    <div className="bg-neutral-300 border-neutral-300 w-[0.8px] h-[100px]" />
+
+                    <FormField
+                      control={functionalityForm.control}
+                      name={"surveyOptions.primaryFeedbackType" as any}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            <div className="flex flex-col gap-2">
+                              <h3 className="font-semibold">
+                                Primary Feedback Type
+                              </h3>
+                              <p className="text-neutral-500">
+                                Choose the main survey type and flow
+                              </p>
+                            </div>
+                          </FormLabel>
+                          <FormControl>
+                            <Select
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="NPS">NPS Survey</SelectItem>
+                                <SelectItem value="CSAT">
+                                  CSAT Survey
+                                </SelectItem>
+                                <SelectItem value="CUSTOM">Custom</SelectItem>
+                                <SelectItem value="TESTIMONIALS">
+                                  Testimonial / Review Form
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+
+                <FormItem className="flex items-center justify-between rounded-lg border border-neutral-300 p-4">
+                  <div className="flex flex-row gap-2 items-center justify-center">
+                    <div>
+                      <Star />
+                    </div>
+                    <div className="flex gap-2 flex-col">
+                      <FormLabel className="font-bold">Reviews</FormLabel>
+                      <FormDescription>
+                        Collect Product or Service reviews
+                      </FormDescription>
+                    </div>
+                  </div>
+                  <FormField
+                    control={functionalityForm.control}
+                    name="isReviewsEnabled"
+                    render={({ field }) => (
+                      <FormControl>
+                        <Switch
+                          checked={field.value as boolean}
+                          onCheckedChange={field.onChange}
+                          className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-neutral-500 before:bg-white before:shadow-md before:ring-1 before:ring-black/5"
+                        />
+                      </FormControl>
+                    )}
+                  />
+                </FormItem>
+
+                <FormItem className="flex items-center justify-between rounded-lg border border-neutral-300 p-4">
+                  <div className="flex flex-row gap-2 items-center justify-center">
+                    <div>
+                      <Bug />
+                    </div>
+                    <div className="flex gap-2 flex-col">
+                      <FormLabel className="font-bold">Bug Reporting</FormLabel>
+                      <FormDescription>
+                        Allow users to report bugs with screenshot and system
+                        info
+                      </FormDescription>
+                    </div>
+                  </div>
+                  <FormField
+                    control={functionalityForm.control}
+                    name="isBugReportingEnabled"
+                    render={({ field }) => (
+                      <FormControl>
+                        <Switch
+                          checked={field.value as boolean}
+                          onCheckedChange={field.onChange}
+                          className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-neutral-500 before:bg-white before:shadow-md before:ring-1 before:ring-black/5"
+                        />
+                      </FormControl>
+                    )}
+                  />
+                </FormItem>
+
+                <FormItem className="flex items-center justify-between rounded-lg border border-neutral-300 p-4">
+                  <div className="flex flex-row gap-2 items-center justify-center">
+                    <div>
+                      <Bug />
+                    </div>
+                    <div className="flex gap-2 flex-col">
+                      <FormLabel className="font-bold">
+                        Feature Suggestion
+                      </FormLabel>
+                      <FormDescription>
+                        Allow users to suggest features or upvote existing
+                        requests
+                      </FormDescription>
+                    </div>
+                  </div>
+                  <FormField
+                    control={functionalityForm.control}
+                    name="isFeatureSuggestionEnabled"
+                    render={({ field }) => (
+                      <FormControl>
+                        <Switch
+                          checked={field.value as boolean}
+                          onCheckedChange={field.onChange}
+                          className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-neutral-500 before:bg-white before:shadow-md before:ring-1 before:ring-black/5"
+                        />
+                      </FormControl>
+                    )}
+                  />
+                </FormItem>
+
+                <div className="flex justify-end gap-2">
+                  <Button type="button" onClick={nextFromStep1}>
+                    Next
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </FormProvider>
+        )}
+
+        {step === 1 && (
+          <FormProvider {...contentForm}>
+            <Form {...contentForm}>
+              <form className="space-y-6">
+                <div>
+                  <h1 className="font-[900] text-xl">
+                    Step 2: Configure Content
+                  </h1>
+                  <p className="text-neutral-600 text-sm">
+                    Define the text, questions and messages users will see.
+                  </p>
+                </div>
+                <FormField
+                  control={contentForm.control}
+                  name={"HeaderTitle" as any}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <div className="flex gap-1 flex-col ">
+                          <p className="font-bold text-lg text-black">
+                            Widget Header Title
+                          </p>
+                          <p className="text-neutral-500 text-sm ">
+                            The main title shown at the top of the widget.
+                          </p>
+                        </div>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          className="border-neutral-400 border-1 focus:border-0"
+                          placeholder="How can we help you today?"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="w-full border-[0.5px] border-neutral-300" />
+
+                {surveyEnabled &&
+                  (primaryType === "NPS" || primaryType === "CSAT") && (
+                    <>
+                      <FormField
+                        control={contentForm.control}
+                        name={"question" as any}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              <div className="flex-col gap-2">
+                                <h1 className="font-bold text-black text-lg">
+                                  Feedback / Survey Content
+                                </h1>
+                                <div className="mt-2 flex flex-col gap-2">
+                                  <h1 className="font-bold text-black text-md">
+                                    Main Question
+                                  </h1>
+                                  <p className="font-medium text-neutral-500 text-sm">
+                                    The primary question for your NPS or CSAT
+                                    survey.
+                                  </p>
+                                </div>
+                              </div>
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="How satisfied are you?"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={contentForm.control}
+                        name={"submitText" as any}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              {" "}
+                              <div className="mt-2 flex flex-col gap-2">
+                                <h1 className="font-bold text-black text-md">
+                                  Submit Button text
+                                </h1>
+                                <p className="font-medium text-neutral-500 text-sm">
+                                  Text displayed on the final submission of your
+                                  surveys
+                                </p>
+                              </div>
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="Submit" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
+                  )}
+
+                {surveyEnabled && primaryType === "CUSTOM" && (
+                  <>
+                    <div className="space-y-3">
+                      <FormLabel>Custom Survey Questions</FormLabel>
+                      {fields.map((f, i) => (
+                        <FormField
+                          key={f.id}
+                          control={contentForm.control}
+                          name={`questions.${i}` as any}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  placeholder={`Question ${i + 1}`}
+                                  {...field}
+                                />
+                              </FormControl>
+                              <div className="flex justify-end">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => remove(i)}
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      ))}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => append("")}
+                      >
+                        Add Question
+                      </Button>
+                    </div>
+                    <FormField
+                      control={contentForm.control}
+                      name={"submitText" as any}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Submit Button Text</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Submit" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+
+                {surveyEnabled && primaryType === "TESTIMONIALS" && (
+                  <FormField
+                    control={contentForm.control}
+                    name={"submitText" as any}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Submit Button Text</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Send" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                <div className="w-full border-[0.5px] border-neutral-300" />
+
+                <FormField
+                  control={contentForm.control}
+                  name={"ThanksTitle" as any}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <div className="flex flex-col gap-2">
+                          <h2 className="font-bold text-lg ">
+                            Thank You Message
+                          </h2>
+                          <p className="text-neutral-400 text-sm">
+                            This message appears after any successful submission
+                            (feedback, bug, feature, review).
+                          </p>
+                        </div>
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Thank you!" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={contentForm.control}
+                  name={"ThanksMessage" as any}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Thank You Message</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="We appreciate your feedback."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex justify-between gap-2">
+                  <Button type="button" variant="outline" onClick={back}>
+                    Back
+                  </Button>
+                  <Button type="button" onClick={nextFromStep2}>
+                    Next
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </FormProvider>
+        )}
+
+        {step === 2 && (
+          <FormProvider {...behaviorForm}>
+            <Form {...behaviorForm}>
+              <form className="space-y-6" onSubmit={onEdit}>
+                <div>
+                  <h1 className="font-[900] text-xl">
+                    Step 3: Behaviour & Targeting
+                  </h1>
+                  <p className="text-neutral-600 text-sm">
+                    Define when and where the widget appears for your user
+                  </p>
+                </div>
+                <FormField
+                  control={behaviorForm.control}
+                  name="triggerType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        <div className="flex flex-col gap-2 ">
+                          <h1 className="font-bold text-lg">Widget Trigger</h1>
+                          <div className="mt-2 flex flex-col gap-2">
+                            <h1 className="font-bold text-black text-md">
+                              Trigger Type
+                            </h1>
+                            <p className="font-medium text-neutral-500 text-sm">
+                              The primary question for your NPS or CSAT survey.
+                            </p>
+                          </div>
+                        </div>
+                      </FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose when to show the widget" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="showImmediately">
+                              Show Immediately
+                            </SelectItem>
+                            <SelectItem value="afterDelay">
+                              After Delay
+                            </SelectItem>
+                            <SelectItem value="onScroll">On Scroll</SelectItem>
+                            <SelectItem value="exitIntent">
+                              Exit Intent
+                            </SelectItem>
+                            <SelectItem value="manual">Manual</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="w-full border-[0.5px] border-neutral-300" />
+
+                <div className="flex flex-col  gap-4">
+                  <FormField
+                    control={behaviorForm.control}
+                    name="includeUrls"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          <div className="font-bold flex flex-col gap-2 ">
+                            <h1 className="text-xl font-bold">
+                              Targeting Rules
+                            </h1>
+
+                            <div className="mt-2 flex flex-col gap-3">
+                              <h1 className="font-bold text-black text-md">
+                                Show on Specific URLs
+                              </h1>
+                              <p className="font-medium text-neutral-500 text-sm max-w-3xl">
+                                Show only on pages matching these
+                                comma-separated patterns (e.g., /docs/*,
+                                /blog/post-name). Leave empty to show on all
+                                pages (unless excluded below). Separate URLs
+                                with commas.
+                              </p>
+                            </div>
+                          </div>
+                        </FormLabel>
+                        <FormControl>
+                          <UrlsInput
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="/docs/*, /pricing"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Comma-separated patterns. Leave empty to show on all
+                          pages.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={behaviorForm.control}
+                    name="excludeUrls"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          {" "}
+                          <div className="mt-2 flex flex-col gap-3">
+                            <h1 className="font-bold text-black text-md">
+                              Exclude on Specific urls
+                            </h1>
+                            <p className="font-medium text-neutral-500 text-sm max-w-3xl">
+                              Do NOT show on pages matching these
+                              comma-separated patterns (e.g., /admin/*, /login).
+                              Separate URLs with commas. Exclusion rules
+                              override inclusion rules
+                            </p>
+                          </div>
+                        </FormLabel>
+                        <FormControl>
+                          <UrlsInput
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="/admin/*, /login"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <FormField
+                    control={behaviorForm.control}
+                    name="devices.desktop"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                        <FormLabel>Desktop</FormLabel>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={behaviorForm.control}
+                    name="devices.mobile"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                        <FormLabel>Mobile</FormLabel>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={behaviorForm.control}
+                    name="devices.tablet"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                        <FormLabel>Tablet</FormLabel>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="flex justify-between gap-2">
+                  <Button type="button" variant="outline" onClick={back}>
+                    Back
+                  </Button>
+                  <Button type="submit">Edit Widget</Button>
+                </div>
+              </form>
+            </Form>
+          </FormProvider>
+        )}
+      </Card>
+    </div>
+  );
+}
