@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { NEXT_REQUEST_META } from "next/dist/server/request-meta";
+import { Prisma } from "@prisma/client";
 
 export async function GET(
   _req: Request,
@@ -36,6 +37,20 @@ export async function GET(
   });
 }
 
+// {
+//   content: {
+//     type: 'feedback',
+//     npsScore: '4',
+//     feedback: 'Very good but need polishing very hard . need to work on this lets go!!'
+//   },
+//   browser: 'Mozilla/5.0',
+//   os: 'MacIntel',
+//   device: 'desktop',
+//   language: 'en',
+//   url: 'http://localhost:3000/widget/cmhomdcnu0000xui45j0wm43x',
+//   timestamp: '2025-11-07T15:40:56.330Z'
+// }
+
 export async function POST(
   req: Request,
   {params}: {params: Promise<{clientId: string}>}
@@ -59,7 +74,20 @@ export async function POST(
     return NextResponse.json({error: "Not found"}, {status: 404});
   }
 
-  console.log(body.content)
+  console.log(body)
+  // to do add ip country and city
+  const response = await db.response.create({data:{
+    type: body.submissionType,
+    widgetId: widget.id,
+    content: body.content as Prisma.InputJsonValue,
+    browser: body.browser,
+    os: body.os,
+    device: body.device,
+    url: body.url
+  }})
+
+
+
   return NextResponse.json({success:true}, {status: 200})
   
 }

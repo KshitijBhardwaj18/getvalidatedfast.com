@@ -352,6 +352,7 @@
 
     function renderMenu() {
       const functionality = widgetConfig.settings.functionality;
+      const content = widgetConfig.settings.content;
     
       views.innerHTML = `
           <div style="display:flex;flex-direction:column;gap:12px;padding:8px 8px 16px 8px;">
@@ -375,7 +376,7 @@
         const target = e.target.closest(".fb-item");
         if (!target) return;
         const view = target.getAttribute("data-view");
-        if (view === "Share Feedback") return renderFeedbackForm();
+        if (view === "Share Feedback") return renderFeedbackForm(functionality,content);
         if (view === "Leave a Review") return renderReviewForm();
         if (view === "Report an issue") return renderBugForm();
         if (view === "Request a Feature") return renderFeatureForm();
@@ -386,19 +387,35 @@
     }
 
     function baseForm(innerHtml,type) {
+   
       views.innerHTML = `
-          <form id="gvf-form" style="padding:8px 12px 16px 12px;" data-type={type}>
+          <form id="gvf-form" style="padding:8px 12px 16px 12px;" data-type=${type}>
+           
             ${innerHtml}
             <button type="submit" style="width:100%;margin-top:14px;padding:12px 16px;background:#111827;color:#fff;border:none;border-radius:10px;font-weight:600;cursor:pointer">${
               content.submitText || "Submit"
             }</button>
           </form>
         `;
+
+          const buttons = document.querySelectorAll('.nps-btn');
+    const input = document.getElementById('nps-score');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Reset previous selection
+        buttons.forEach(b => b.style.outline = 'none');
+        // Highlight selected button
+        btn.style.outline = '2px solid black';
+        // Update hidden input
+        input.value = btn.getAttribute('data-value');
+      });
+    });
+
       const form = document.getElementById("gvf-form");
       if (form) form.addEventListener("submit", handleSubmit);
     }
 
-    function renderFeedbackForm() {
+    function renderFeedbackForm(functionality, content) {
       header.firstElementChild.innerHTML = `${backButton()} <span style="margin-left:8px;font-weight:700;">${
         content.question || "How can we help?"
       }</span>`;
@@ -408,13 +425,20 @@
         }`;
         renderMenu();
       };
+
+      const surveyHtml = buildFormFields(functionality,content);
+
+      
       baseForm(`
           <input type="hidden" name="type" value="feedback" />
+          ${surveyHtml}
           <label style="display:block;margin-bottom:8px;color:#111827;font-weight:600;">${
             content.question || "Tell us more"
           }</label>
           <textarea name="feedback" rows="5" placeholder="Tell us more about your experience (optional)" style="width:100%;border:1px solid #e5e7eb;border-radius:12px;padding:10px;font-family:inherit;"></textarea>
         `, "SURVEY");
+
+     
     }
 
     function renderBugForm() {
@@ -428,7 +452,7 @@
 
       // Build rich bug report form
       views.innerHTML = `
-          <form id="gvf-form" style="padding:8px 12px 16px 12px; data-type="BUG">
+          <form id="gvf-form" style="padding:8px 12px 16px 12px;" data-type="BUGREPORT">
             <input type="hidden" name="type" value="bug" />
             <input type="hidden" id="gvf-screenshot-data" name="screenshotData" />
             <input type="hidden" id="gvf-attachment-data" name="attachmentData" />
@@ -540,7 +564,7 @@
 
       // Build feature request form matching the provided layout
       views.innerHTML = `
-          <form id="gvf-form" style="padding:8px 12px 16px 12px;" data-type="FEATURE">
+          <form id="gvf-form" style="padding:8px 12px 16px 12px;" data-type="FEATUREREQUEST">
             <input type="hidden" name="type" value="feature" />
 
             <div style="font-weight:700;font-size:16px;margin-bottom:12px;">Add New Feature Request</div>
@@ -591,7 +615,7 @@
         .join("");
 
       baseForm(`
-          <input type="hidden" name="type" value="review" />
+          <input type="hidden" name="type" data-type="REVIEW" />
           <input type="hidden" id="fb-rating" name="rating" value="0" />
           <div style="margin-bottom:8px;color:#111827;font-weight:600;">Overall rating</div>
           <div style="display:flex;gap:8px;margin-bottom:12px;">${stars}</div>
@@ -646,21 +670,52 @@
       const surveyType = functionality.surveyOptions?.primaryFeedbackType;
 
       if (surveyType === "NPS") {
-        html += `
-            <div style="margin-bottom: 16px;">
-              <label style="display: block; margin-bottom: 8px; font-weight: 500;">${
-                content.question
-              }</label>
-              <div style="display: flex; gap: 8px; justify-content: space-between;">
-                ${Array.from(
-                  { length: 11 },
-                  (_, i) =>
-                    `<button type="button" class="nps-btn" data-value="${i}" style="flex: 1; padding: 8px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">${i}</button>`
-                ).join("")}
-              </div>
-              <input type="hidden" name="nps-score" id="nps-score" />
-            </div>
-          `;
+       html += `
+  <div style="margin-bottom: 16px;">
+    <label style="display: block; margin-bottom: 8px; font-weight: 500;">
+      ${content.question}
+    </label>
+    <div id="nps-container" style="display: flex; gap: 6px; justify-content: center;">
+      ${Array.from({ length: 11 }, (_, i) => {
+        let bg, color;
+        if (i <= 6) {
+          bg = "#fee2e2"; // red-100
+          color = "#b91c1c"; // red-700
+        } else if (i <= 8) {
+          bg = "#fef9c3"; // yellow-100
+          color = "#a16207"; // yellow-700
+        } else {
+          bg = "#dcfce7"; // green-100
+          color = "#15803d"; // green-700
+        }
+        return `
+          <button 
+            type="button"
+            class="nps-btn"
+            data-value="${i}"
+            style="
+              width: 32px;
+              height: 32px;
+              border-radius: 6px;
+              font-size: 14px;
+              font-weight: 500;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border: 1px solid #ccc;
+              background-color: ${bg};
+              color: ${color};
+              cursor: pointer;
+              transition: all 0.2s ease-in-out;
+            "
+            onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 2px 6px rgba(0,0,0,0.15)'"
+            onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'"
+          >${i}</button>
+        `;
+      }).join("")}
+    </div>
+    <input type="hidden" name="npsScore" id="nps-score" />
+  </div>`
       } else if (surveyType === "CSAT") {
         html += `
             <div style="margin-bottom: 16px;">
@@ -688,51 +743,7 @@
       }
     }
 
-    // Custom questions
-    if (
-      functionality.surveyEnabled &&
-      content.questions &&
-      Array.isArray(content.questions)
-    ) {
-      content.questions.forEach((question, index) => {
-        html += `
-            <div style="margin-bottom: 16px;">
-              <label style="display: block; margin-bottom: 8px; font-weight: 500;">${question}</label>
-              <textarea name="custom-question-${index}" rows="3" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;"></textarea>
-            </div>
-          `;
-      });
-    }
-
-    // Reviews
-    if (functionality.isReviewsEnabled) {
-      html += `
-          <div style="margin-bottom: 16px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Review</label>
-            <textarea name="review" rows="4" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;"></textarea>
-          </div>
-        `;
-    }
-
-    // Bug reports
-    if (functionality.isBugReportingEnabled) {
-      html += `
-          <div style="margin-bottom: 16px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Bug Description</label>
-            <textarea name="bug-description" rows="4" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;"></textarea>
-          </div>
-        `;
-    }
-
-    // Feature suggestions
-    if (functionality.isFeatureSuggestionEnabled) {
-      html += `
-          <div style="margin-bottom: 16px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Feature Suggestion</label>
-            <textarea name="feature-suggestion" rows="4" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit;"></textarea>
-          </div>
-        `;
-    }
+   
 
     return html;
   }
@@ -803,6 +814,7 @@
 
     const form  = document.querySelector("#gvf-form")
     const submissionType = form.dataset.type
+    console.log("d1" + submissionType)
 
     try {
       const response = await fetch(`${API_BASE}/api/widget/${clientKey}`, {
@@ -812,6 +824,7 @@
         },
         body: JSON.stringify({
           content: content,
+          submissionType,
           ...metadata,
         }),
       });

@@ -158,6 +158,7 @@ model Response {
   ip         String?
   country    String?
   city       String?
+  url       String?
 
   createdAt  DateTime @default(now())
 
