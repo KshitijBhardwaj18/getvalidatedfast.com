@@ -63,6 +63,7 @@
 
       widgetConfig = await response.json();
       console.log("getvalidatedfast.com: Config loaded", widgetConfig);
+      
       checkBehaviorAndShow();
     } catch (error) {
       console.error("getvalidatedfast.com: Error loading widget config", error);
@@ -211,7 +212,7 @@
     });
   }
 
-  // Initialize and render the widget
+  // Initialize an render the widgetd
   function initializeWidget() {
     if (!widgetConfig) return;
 
@@ -350,12 +351,15 @@
     }
 
     function renderMenu() {
+      const functionality = widgetConfig.settings.functionality;
+    
       views.innerHTML = `
           <div style="display:flex;flex-direction:column;gap:12px;padding:8px 8px 16px 8px;">
-            ${listItem("#fef3c7", "★", "Share Feedback", "")}
-            ${listItem("#dbeafe", "💬", "Leave a Review", "")}
-            ${listItem("#fee2e2", "🧾", "Report an issue", "")}
-            ${listItem("#dcfce7", "💡", "Request a Feature", "")}
+          
+            ${functionality.surveyEnabled && listItem("#fef3c7", "★", "Share Feedback", "")}
+            ${functionality.isReviewsEnabled ? listItem("#dbeafe", "💬", "Leave a Review", ""): ""}
+            ${functionality.isBugReportingEnabled ? listItem("#fee2e2", "🧾", "Report an issue", "") : ""}
+            ${functionality.isFeatureSuggestionEnabled ? listItem("#dcfce7", "💡", "Request a Feature", "") : ""}
             <div style="border:1px solid #f1f5f9;border-radius:14px;padding:16px 14px;display:flex;align-items:center;gap:14px;">
               <div style="width:38px;height:38px;border-radius:9999px;background:#f3e8ff;display:flex;align-items:center;justify-content:center;">💭</div>
               <div style="flex:1;">
@@ -377,14 +381,13 @@
         if (view === "Request a Feature") return renderFeatureForm();
       });
     }
-
     function backButton() {
       return `<button type="button" id="fb-back" style="all:unset;cursor:pointer;font-size:18px;">←</button>`;
     }
 
-    function baseForm(innerHtml) {
+    function baseForm(innerHtml,type) {
       views.innerHTML = `
-          <form id="gvf-form" style="padding:8px 12px 16px 12px;">
+          <form id="gvf-form" style="padding:8px 12px 16px 12px;" data-type={type}>
             ${innerHtml}
             <button type="submit" style="width:100%;margin-top:14px;padding:12px 16px;background:#111827;color:#fff;border:none;border-radius:10px;font-weight:600;cursor:pointer">${
               content.submitText || "Submit"
@@ -411,7 +414,7 @@
             content.question || "Tell us more"
           }</label>
           <textarea name="feedback" rows="5" placeholder="Tell us more about your experience (optional)" style="width:100%;border:1px solid #e5e7eb;border-radius:12px;padding:10px;font-family:inherit;"></textarea>
-        `);
+        `, "SURVEY");
     }
 
     function renderBugForm() {
@@ -425,7 +428,7 @@
 
       // Build rich bug report form
       views.innerHTML = `
-          <form id="gvf-form" style="padding:8px 12px 16px 12px;">
+          <form id="gvf-form" style="padding:8px 12px 16px 12px; data-type="BUG">
             <input type="hidden" name="type" value="bug" />
             <input type="hidden" id="gvf-screenshot-data" name="screenshotData" />
             <input type="hidden" id="gvf-attachment-data" name="attachmentData" />
@@ -537,7 +540,7 @@
 
       // Build feature request form matching the provided layout
       views.innerHTML = `
-          <form id="gvf-form" style="padding:8px 12px 16px 12px;">
+          <form id="gvf-form" style="padding:8px 12px 16px 12px;" data-type="FEATURE">
             <input type="hidden" name="type" value="feature" />
 
             <div style="font-weight:700;font-size:16px;margin-bottom:12px;">Add New Feature Request</div>
@@ -602,7 +605,7 @@
               <input type="checkbox" name="testimonialConsent" style="width:14px;height:14px" /> I agree that my feedback may be used publicly for marketing or testimonials.
             </label>
           </div>
-        `);
+        `, "REVIEW");
 
       // wire stars
       views.querySelectorAll(".fb-star").forEach((btn) => {
@@ -797,6 +800,9 @@
       url: window.location.href,
       timestamp: new Date().toISOString(),
     };
+
+    const form  = document.querySelector("#gvf-form")
+    const submissionType = form.dataset.type
 
     try {
       const response = await fetch(`${API_BASE}/api/widget/${clientKey}`, {

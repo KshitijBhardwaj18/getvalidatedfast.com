@@ -132,8 +132,24 @@ model Project {
   widgets     Widget[]
 }
 
+enum SurveyType {
+  CSAT
+  NPS
+  TESTIMONIAL
+  CUSTOM
+}
+
+enum ResponseType {
+  SURVEY 
+  BUGREPORT
+  FEATUREREQUEST
+  REVIEW
+}
+
 model Response {
   id         String   @id @default(cuid())
+  type       ResponseType
+  surveyType SurveyType?
   widgetId   String
   content    Json
   browser    String?
