@@ -386,10 +386,10 @@
       return `<button type="button" id="fb-back" style="all:unset;cursor:pointer;font-size:18px;">←</button>`;
     }
 
-    function baseForm(innerHtml,type) {
+    function baseForm(innerHtml,type,surveyType = null) {
    
       views.innerHTML = `
-          <form id="gvf-form" style="padding:8px 12px 16px 12px;" data-type=${type}>
+          <form id="gvf-form" style="padding:8px 12px 16px 12px;" data-type=${type} ${surveyType ? `data-survey-type = ${surveyType}` : ""}>
            
             ${innerHtml}
             <button type="submit" style="width:100%;margin-top:14px;padding:12px 16px;background:#111827;color:#fff;border:none;border-radius:10px;font-weight:600;cursor:pointer">${
@@ -427,6 +427,7 @@
       };
 
       const surveyHtml = buildFormFields(functionality,content);
+      const surveyType = functionality?.surveyOptions?.primaryFeedbackType;
 
       
       baseForm(`
@@ -436,7 +437,7 @@
             content.question || "Tell us more"
           }</label>
           <textarea name="feedback" rows="5" placeholder="Tell us more about your experience (optional)" style="width:100%;border:1px solid #e5e7eb;border-radius:12px;padding:10px;font-family:inherit;"></textarea>
-        `, "SURVEY");
+        `, "SURVEY",surveyType);
 
      
     }
@@ -671,7 +672,7 @@
 
       if (surveyType === "NPS") {
        html += `
-  <div style="margin-bottom: 16px;">
+  <div style="margin-bottom: 16px;" >
     <label style="display: block; margin-bottom: 8px; font-weight: 500;">
       ${content.question}
     </label>
@@ -814,6 +815,8 @@
 
     const form  = document.querySelector("#gvf-form")
     const submissionType = form.dataset.type
+    const surveyType = submissionType == "SURVEY" ? form.dataset.surveyType : null;
+
     console.log("d1" + submissionType)
 
     try {
@@ -825,9 +828,12 @@
         body: JSON.stringify({
           content: content,
           submissionType,
+          surveyType,
           ...metadata,
         }),
       });
+
+      console.log(submissionType)
 
       if (response.ok) {
         showThankYouMessage();

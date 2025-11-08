@@ -66,7 +66,7 @@ export async function editWidget(values: EditWidgetInput) {
 
   const widget = await db.widget.update({
     where: {
-      id:values.widgetId
+      id: values.widgetId
     },
     data: {
       title: values.functionality.name,

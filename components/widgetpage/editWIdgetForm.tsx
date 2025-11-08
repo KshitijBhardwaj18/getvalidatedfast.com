@@ -107,12 +107,19 @@ export default function EditWidgetForm({widgetId}: {widgetId: string}) {
   const [step, setStep] = useState(0);
   const router = useRouter();
 
- useEffect(() => {
-    const getAndSetWidget = async () => {
+  useEffect(() => {
+  const getAndSetWidget = async () => {
     const widget = await getWidgetDetails(widgetId);
-    setWidgetSetting(widget?.settings as unknown as EditWidgetSettings);
+    if (widget?.settings) {
+      setWidgetSetting(widget.settings as unknown as EditWidgetSettings);
+    }
   };
+
   getAndSetWidget();
+}, [widgetId]);
+
+ useEffect(() => {
+    
   if (!widgetSetting) return;
 
 if (widgetSetting.functionality.surveyEnabled) {

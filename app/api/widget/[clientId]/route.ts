@@ -79,6 +79,7 @@ export async function POST(
   const response = await db.response.create({data:{
     type: body.submissionType,
     widgetId: widget.id,
+    surveyType: body.surveyType,
     content: body.content as Prisma.InputJsonValue,
     browser: body.browser,
     os: body.os,
