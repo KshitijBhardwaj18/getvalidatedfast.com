@@ -1,3 +1,4 @@
+import AnalyticalTable from "@/components/analytics/response/table/AnalyticalTable";
 import HeaderCard from "@/components/headerCard";
 import { Menu } from "lucide-react";
 
@@ -10,6 +11,8 @@ export default function Responses() {
         icon={<Menu />}
         actionButton={false}
       />
+
+      <AnalyticalTable/>
     </div>
   );
 }

@@ -22,20 +22,20 @@ export default function RootLayout({
       <html lang="en">
         <body className={cn("antialiased", poppins.className)}>
           {children} <Toaster />
-          {/* <script
-    defer
-    src="http://localhost:3000/widget.js"
-    data-client-key="af9ee0bb-259e-4c89-91ae-d9210b73fc86"
-    data-language="en" 
-    id="getvalidated-widget-script"
-></script> */}
           <script
+            defer
+            src="http://localhost:3000/widget.js"
+            data-client-key="af9ee0bb-259e-4c89-91ae-d9210b73fc86"
+            data-language="en"
+            id="getvalidated-widget-script"
+          ></script>
+          {/* <script
             defer
             src="https://cdn.feedbask.com/widget.js"
             data-client-key="2a554220-b51a-41c9-ad1b-05415ee9d687"
             data-language="en"
             id="feedbask-widget-script"
-          ></script>
+          ></script> */}
         </body>
       </html>
     </SessionProvider>

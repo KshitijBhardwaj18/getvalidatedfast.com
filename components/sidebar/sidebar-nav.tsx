@@ -35,7 +35,7 @@ const anlyticalLink = [
    },
    {
     label: "Reviews",
-    href: "/review",
+    href: "/reviews",
     icon: <Star/>
    },
    {
@@ -77,7 +77,7 @@ const SidebarNav = () => {
         );
       })}
 
-      <h3 className="text-md text-black font-seimbold text-neutral-600 font-bold mt-4">Analytics and Feedback </h3>
+      <h3 className="text-md  font-seimbold text-neutral-600 font-bold mt-4">Analytics and Feedback </h3>
       {
         anlyticalLink.map((link) => {
            const isActive =
